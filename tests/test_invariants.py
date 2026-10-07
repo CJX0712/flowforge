@@ -110,6 +110,28 @@ def test_i5_kl_nonnegative_on_all_datasets():
         assert kl >= -tol, f"{name}: KL={kl} < -{tol}"
 
 
+def test_i4_normalization_is_chunked_and_memory_bounded():
+    """回归测试：I4 网格积分必须**分块**。
+
+    背景：n=900 的二维网格有 810,000 个点，一次性送进 MLP 会分配约 198MiB，
+    内存紧张时抛 ArrayMemoryError。本机内存充裕时从不暴露，干净环境首次
+    运行 demo 时才崩 —— 所以必须用「单次调用点数」把它锁死。
+    """
+    set_all(12)
+    m = _flow("affine", seed=12, n_blocks=2, hidden=8)
+    orig = m.log_prob
+    seen: list = []
+
+    def spy(X):
+        seen.append(X.shape[0])
+        return orig(X)
+
+    err = density_normalization_error(spy, n=900, chunk=20000)
+    assert err < 5e-2, f"分块积分结果仍应接近 1，实际偏差 {err}"
+    assert len(seen) > 1, "网格没有被切分，仍会一次性分配全部点"
+    assert max(seen) <= 20000, f"单次调用点数 {max(seen)} 超过 chunk=20000"
+
+
 def test_check_all_runs_and_reports_five_items():
     set_all(8)
     dens = build_density("banana")

@@ -2,6 +2,24 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。所有条目作者：**晨星**。
 
+## [0.1.1] - 2026-10-08
+
+### 修复
+
+- **I4 网格积分未分块导致内存尖峰**（干净环境首次运行 demo 时崩）。
+  `density_normalization_error` 用 900×900 网格一次性把 810,000 个点送进 MLP，
+  单次分配约 198MiB（float64 的 `(810000, hidden)` 中间量），内存紧张时抛
+  `numpy._core._exceptions._ArrayMemoryError`。
+  本机内存充裕时从不暴露，**只有干净环境复现验证才把它逼出来**。
+  改为按行分块（默认 20,000 点/次），实测 Python 峰值分配 **57.3MB**。
+  新增回归测试 `test_i4_normalization_is_chunked_and_memory_bounded`，
+  用「单次调用点数 ≤ chunk」把它锁死。
+
+### 验证
+
+修复后重跑 demo：**60 行核心指标逐位不变**（mismatches = 0），
+G1a / G1b / G2 / G4 / G5 / G6 全绿。
+
 ## [0.1.0] - 2026-10-08
 
 首个公开版本。

@@ -77,14 +77,27 @@ def density_normalization_error(
     lo: float = -12.0,
     hi: float = 12.0,
     n: int = 900,
+    chunk: int = 20000,
 ) -> float:
-    """I4：数值积分 ∫ p(x) dx 与 1 的绝对偏差（网格积分）。"""
-    grid = [np.linspace(lo, hi, n)] * dim
-    mesh = np.meshgrid(*grid, indexing="ij")
-    X = np.stack([m.ravel() for m in mesh], axis=1)
-    p = np.exp(log_prob_fn(X))
-    cell = (grid[0][1] - grid[0][0]) ** dim
-    return abs(float(np.sum(p) * cell) - 1.0)
+    """I4：数值积分 ∫ p(x) dx 与 1 的绝对偏差（网格积分，**分块**）。
+
+    必须分块：n=900 的二维网格有 810,000 个点，一次性送进 MLP 会分配约
+    198MiB（float64 的 (810000, hidden) 中间量），内存紧张时直接
+    `ArrayMemoryError`。实测在**干净环境**首次跑 demo 时崩在这里，
+    而本机因内存充裕从未暴露 —— 干净环境复现验证的价值所在。
+    """
+    if dim != 2:
+        raise ValueError("当前实现只支持 2 维网格积分")
+    g = np.linspace(lo, hi, n)
+    cell = (g[1] - g[0]) ** dim
+    rows_per = max(1, chunk // n)
+    total = 0.0
+    for r0 in range(0, n, rows_per):
+        mesh = np.meshgrid(g[r0 : r0 + rows_per], g, indexing="ij")
+        X = np.stack([mesh[0].ravel(), mesh[1].ravel()], axis=1)
+        total += float(np.sum(np.exp(log_prob_fn(X))))
+        del mesh, X
+    return abs(total * cell - 1.0)
 
 
 def check_all(
