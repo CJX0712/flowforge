@@ -7,7 +7,7 @@
 [![CI](https://github.com/CJX0712/flowforge/actions/workflows/ci.yml/badge.svg)](https://github.com/CJX0712/flowforge/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/CJX0712/flowforge?label=Release)](https://github.com/CJX0712/flowforge/releases)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![Quality](https://img.shields.io/badge/quality-A%20(production)-brightgreen.svg)](docs/model_card.md)
 
 ---
@@ -102,6 +102,8 @@ cd flowforge
 
 python -m venv .venv && . .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt                   # 或 requirements.lock.txt（钉版本）
+
+# 环境要求：Python >= 3.12（numpy 2.5 要求；CI 矩阵 3.12 / 3.13）
 
 # ① 数学不变量自检（I1~I5，秒级）
 python -m flowforge.cli --check

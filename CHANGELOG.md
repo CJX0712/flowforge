@@ -2,6 +2,19 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。所有条目作者：**晨星**。
 
+## [0.1.2] - 2026-10-08
+
+### 修复（由 CI 门禁抓出，非预防性改动）
+
+- **CI 矩阵含 Python 3.11 导致 2/6 作业红灯**。根因：锁文件钉的 `numpy==2.5.3`
+  **要求 Python >= 3.12**，3.11 上无 wheel，ubuntu 报
+  `No matching distribution found for numpy==2.5.3`，windows 因安装失败连带
+  `No module named ruff`。
+  处置：CI 矩阵收敛为 **3.12 / 3.13**（× ubuntu/windows = 4 作业），
+  `pyproject.toml` 的 `requires-python` 改为 `>=3.12`、ruff `target-version` 改为 `py312`，
+  `requirements.txt` 的 numpy 下限提到 `>=2.5`，README 徽章同步。
+  **这纠正了 v0.1.0/v0.1.1 中「CI 矩阵 py3.11-3.13」的错误声明。**
+
 ## [0.1.1] - 2026-10-08
 
 ### 修复
