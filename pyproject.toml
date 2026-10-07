@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flowforge"
+version = "0.1.0"
+description = "FlowForge · 世界级归一化流 / 可逆生成建模系统（纯 NumPy，可验证、可复现）"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "晨星" }]
+keywords = ["normalizing-flows", "generative-models", "invertible-networks",
+            "realnvp", "maf", "flow-matching", "scikit-learn", "numpy"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=2.0,<3",
+    "scipy>=1.13",
+    "scikit-learn>=1.5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff==0.16.10"]
+
+[project.scripts]
+flowforge = "flowforge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["flowforge*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::UserWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PL"]
+ignore = [
+    "PLR0913",  # 参数数量：dataclass 工厂函数天然多参
+    "PLR0912",  # 分支数量：benchmark 编排逻辑
+    "PLR0915",  # 语句数量
+    "PLR0917",  # 位置参数数量：同上
+    "PLR2004",  # 魔法值：KL 容差等场景可读性优先
+    "E501",     # 行宽由 formatter 统一处理
+    # 本项目文档与注释为中文，全角标点（。，（）) 属正常书写而非易混淆字符
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR2004", "PLR0915", "PLC0415", "PLR0917"]
+"examples/*" = ["PLR0915", "PLR0912", "PLC0415", "PLR0917"]
+
+[tool.coverage.run]
+source = ["flowforge"]

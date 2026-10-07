@@ -1,0 +1,12 @@
+coverage==7.16.2
+iniconfig==2.3.1
+joblib==1.6.0
+numpy==2.5.3
+packaging==26.3
+pluggy==1.6.0
+pytest-cov==6.1.1
+pytest==8.4.2
+ruff==0.16.10
+scikit-learn==1.9.1
+scipy==1.18.1
+threadpoolctl==3.7.0

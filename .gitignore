@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 测试与覆盖率产物
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+report.json
+
+# benchmark 产物（每次运行生成，不入库）
+benchmark.json
+bench_before.json
+
+# 数据缓存与模型权重（本项目不下载权重，此项为防御性）
+data/cache/
+*.npz
+*.npy
+*.pt
+*.pth
+*.onnx
+
+# 密钥（防御性：本项目不应包含任何密钥）
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,10 @@
+# FlowForge 运行依赖（作者：晨星）
+# 全部为跨平台 CPU 轮子，无需编译、无需 GPU、无需下载预训练权重。
+numpy>=2.0,<3
+scipy>=1.13
+scikit-learn>=1.5
+
+# 开发/测试依赖
+pytest>=8.0
+pytest-cov>=5.0
+ruff==0.16.10

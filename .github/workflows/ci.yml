@@ -1,0 +1,52 @@
+# FlowForge CI · 作者：晨星
+# lint + 单测 + demo 冒烟，全部为**硬门禁**（任一失败即红灯，不允许 || true）。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装依赖（锁版本，保证门禁不漂移）
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.lock.txt
+          python -m pip install -e .
+
+      - name: Lint（硬门禁）
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .
+
+      - name: 单元测试
+        run: python -m pytest -q -W ignore::UserWarning --cov=flowforge --cov-report=term
+
+      - name: 数学不变量自检（I1~I5）
+        run: python -m flowforge.cli --check
+
+      - name: Demo 冒烟
+        run: python examples/run_demo.py --quick
+
+      - name: 密钥自查
+        shell: bash
+        run: |
+          if git grep -nE "(sk-[A-Za-z0-9]{16,}|api[_-]?key\s*=\s*['\"][^'\"]+|token\s*=\s*['\"][^'\"]+)" -- '*.py' '*.md' '*.toml'; then
+            echo "::error::疑似密钥泄漏"; exit 1
+          fi
+          echo "密钥自查通过"
