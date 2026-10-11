@@ -1,85 +1,63 @@
-"""FlowForge 核心数据结构（dataclass，只读优先）。"""
+"""Core data types shared across FlowForge modules.
+
+Author: 晨星
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import numpy as np
 
 
-@dataclass(frozen=True)
-class DensitySpec:
-    """一个合成密度的规格。"""
-
-    name: str
-    n_train: int = 2000
-    n_test: int = 2000
-    train_seed: int = 7
-    test_seed: int = 10007
-    params: dict[str, Any] = field(default_factory=dict)
-
-
 @dataclass
 class Dataset:
-    """采样 + 解析对数密度。"""
+    """A train/val/test split of a density-estimation problem.
+
+    ``X`` is the training set; ``X_val`` is used only for model selection and
+    early stopping (never for fitting scalers or HPO); ``X_test`` is the frozen
+    holdout used for the final reported metric.
+    """
 
     name: str
-    X_train: np.ndarray
+    dim: int
+    X: np.ndarray
+    X_val: np.ndarray
     X_test: np.ndarray
-    log_prob: Any  # Callable[[np.ndarray], np.ndarray]
-    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        for attr in ("X", "X_val", "X_test"):
+            arr = getattr(self, attr)
+            if not isinstance(arr, np.ndarray) or arr.dtype != np.float64:
+                raise ValueError(f"{attr} must be float64 ndarray")
+        if not (self.X.shape[1] == self.dim == self.X_val.shape[1] == self.X_test.shape[1]):
+            raise ValueError("all splits must share dimension == dim")
+
+
+@dataclass
+class BenchmarkRow:
+    """One row of the benchmark table (one model on one dataset)."""
+
+    dataset: str
+    model: str
+    kind: str  # 'flagship' | 'flow' | 'baseline' | 'sota'
+    nll_mean: float
+    nll_std: float
+    n_params: int
+    skipped: bool = False
+    note: str = ""
 
     @property
-    def dim(self) -> int:
-        return int(self.X_train.shape[1])
-
-
-@dataclass(frozen=True)
-class FlowSpec:
-    """方法规格：族 + 结构超参。"""
-
-    family: str  # planar | radial | affine | maf | spline | fusion | gaussian
-    n_blocks: int = 8
-    hidden: int = 32
-    n_components: int = 1  # >1 即混合流
-    block_type: str = "affine"
-    n_bins: int = 8  # spline 用
-    entropy_reg: float = 0.0  # 混合流责任度熵正则（负号=鼓励均匀）
-    seed: int = 7
+    def nll(self) -> float:
+        return self.nll_mean
 
 
 @dataclass
-class FitResult:
-    """一次拟合的产出。"""
+class BenchmarkReport:
+    """Aggregated, reproducible benchmark result."""
 
-    method: str
-    dataset: str
-    seed: int
-    spec: FlowSpec
-    n_params: int
-    kl_gap: float  # KL(p_true || p_model) 估计，>=0
-    nll: float
-    nll_true: float
-    w2: float | None = None
-    mmd: float | None = None
-    train_sec: float = 0.0
-    diagnostics: dict[str, Any] = field(default_factory=dict)
+    rows: list[BenchmarkRow] = field(default_factory=list)
+    meta: dict = field(default_factory=dict)
 
-
-@dataclass
-class MethodSummary:
-    """多 seed 聚合。"""
-
-    method: str
-    dataset: str
-    kl_mean: float
-    kl_std: float
-    seeds: list[int]
-    n_params: int = 0
-    w2_mean: float | None = None
-    w2_std: float | None = None
-    mmd_mean: float | None = None
-
-
-__all__ = ["Dataset", "DensitySpec", "FitResult", "FlowSpec", "MethodSummary"]
+    def add(self, row: BenchmarkRow) -> None:
+        self.rows.append(row)

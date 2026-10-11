@@ -1,26 +1,11 @@
-# FlowForge · 作者：晨星
+# FlowForge — one-command reproduction (author: 晨星)
 PY ?= python
+PKG := flowforge
 
-.PHONY: help install dev test lint fmt demo check clean
-
-help:
-	@echo "make install  安装运行依赖"
-	@echo "make dev      安装开发依赖（pytest/ruff）"
-	@echo "make test     运行单元测试"
-	@echo "make lint     ruff check + format --check（硬门禁）"
-	@echo "make fmt      ruff format"
-	@echo "make demo     端到端演示，产出 benchmark.json"
-	@echo "make check    自检全部数学不变量（I1~I5）"
-	@echo "make clean    清理生成物"
+.PHONY: install test lint fmt demo selftest clean ci
 
 install:
-	$(PY) -m pip install -r requirements.txt
-
-dev:
-	$(PY) -m pip install -r requirements.txt pytest-cov ruff==0.16.10
-
-test:
-	$(PY) -m pytest -q -W ignore::UserWarning --cov=flowforge --cov-report=term
+	$(PY) -m pip install -r requirements.lock.txt
 
 lint:
 	$(PY) -m ruff check .
@@ -28,14 +13,24 @@ lint:
 
 fmt:
 	$(PY) -m ruff format .
+	$(PY) -m ruff check --fix .
+
+test:
+	$(PY) -m pytest -q
+
+cov:
+	$(PY) -m pytest -q --cov=$(PKG) --cov-report=term
+
+selftest:
+	$(PY) -m $(PKG).cli selftest
 
 demo:
-	$(PY) examples/run_demo.py
+	$(PY) $(PKG)/examples/run_demo.py
 
-check:
-	$(PY) -m flowforge.cli --check
+demo-quick:
+	$(PY) $(PKG)/examples/run_demo.py --quick
+
+ci: lint test selftest demo-quick
 
 clean:
-	rm -f benchmark.json bench_before.json
-	rm -rf .pytest_cache .ruff_cache .coverage htmlcov
-	find . -name __pycache__ -type d -prune -exec rm -rf {} +
+	rm -rf .pytest_cache .ruff_cache __pycache__ */__pycache__ *.egg-info .coverage

@@ -1,96 +1,98 @@
-"""配置：dataclass + FLOWFORGE_* 环境变量覆盖 + schema 校验。
+"""Configuration with environment overrides and schema validation.
 
-踩坑库 §A：配置非法值必须抛错，不能静默兜底（静默兜底会把非法输入伪装成"降级成功"）。
+Every tunable knob is read from ``ENV_FLOWFORGE_*`` if present, else falls back
+to a validated default.  ``validate()`` is called at construction so a bad
+config fails fast with an ``E110`` instead of a cryptic training crash.
+
+Author: 晨星
 """
 
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass, fields
-from typing import Any
+from typing import get_type_hints
 
 from .errors import ConfigError
 
-ENV_PREFIX = "FLOWFORGE_"
-
-_INT_FIELDS = {
-    "seed",
-    "n_train",
-    "n_test",
-    "iters",
-    "batch",
-    "hidden",
-    "n_blocks",
-    "hpo_seed",
-    "n_bins",
-    "n_components",
-}
-_FLOAT_FIELDS = {"lr", "entropy_reg", "grad_clip", "w2_reg"}
+_PREFIX = "FLOWFORGE_"
 
 
 @dataclass
 class Config:
-    # 确定性
-    seed: int = 7
-    hpo_seed: int = 9042
-    test_seed: int = 10007
-    # 数据
-    n_train: int = 2000
-    n_test: int = 2000
-    # 训练：默认预算经实测标定，使 demo 端到端 <= 60s（CPU）
-    iters: int = 250
-    lr: float = 5e-3
-    batch: int = 256
-    grad_clip: float = 5.0
-    # 结构
-    hidden: int = 32
-    n_blocks: int = 8
-    n_bins: int = 8
-    n_components: int = 4
-    entropy_reg: float = 0.0
-    # 评测
-    w2_reg: float = 0.05
-    n_w2_samples: int = 200
+    """FlowForge runtime configuration (single source of truth)."""
 
-    @classmethod
-    def from_env(cls, **overrides: Any) -> Config:
-        data: dict[str, Any] = {}
-        for f in fields(cls):
-            env_key = ENV_PREFIX + f.name.upper()
-            if env_key in os.environ:
-                raw = os.environ[env_key]
-                try:
-                    data[f.name] = int(raw) if f.name in _INT_FIELDS else float(raw)
-                except ValueError as exc:
-                    raise ConfigError(f"环境变量 {env_key} 无法解析为数字", value=raw) from exc
-        data.update(overrides)
-        cfg = cls(**data)
-        cfg.validate()
-        return cfg
+    seed: int = 12345
+    n_train: int = 2000
+    n_val: int = 800
+    n_test: int = 1500
+    batch_size: int = 256
+    epochs: int = 250
+    lr: float = 8e-3
+    weight_decay: float = 0.0
+    hidden: int = 64
+    n_layers: int = 2  # MLP depth inside each coupling/MADE conditioner
+    n_coupling: int = 6  # affine-coupling blocks in RealNVP
+    n_bins: int = 8  # spline bins (reserved: neural-spline coupling)
+    bound: float = 5.0  # spline domain half-width
+    patience: int = 60  # early-stop patience (val NLL)
+    threads: int = 0  # 0 = numpy default
+
+    def __post_init__(self) -> None:
+        self._apply_env()
+        self.validate()
+
+    def _apply_env(self) -> None:
+        # `from __future__ import annotations` makes Field.type a *string*, so
+        # resolve real type objects before deciding how to coerce.
+        hints = get_type_hints(type(self))
+        for f in fields(self):
+            env = f"{_PREFIX}{f.name.upper()}"
+            if env not in os.environ:
+                continue
+            raw = os.environ[env]
+            typ = hints.get(f.name, str)
+            try:
+                if typ is int:
+                    setattr(self, f.name, int(raw))
+                elif typ is float:
+                    setattr(self, f.name, float(raw))
+                elif typ is bool:
+                    setattr(self, f.name, raw.strip().lower() in ("1", "true", "yes"))
+                else:
+                    setattr(self, f.name, raw)
+            except ValueError as exc:
+                raise ConfigError(f"bad env {env}={raw!r}: {exc}") from exc
 
     def validate(self) -> None:
-        if self.seed < 0:
-            raise ConfigError("seed 必须 >= 0", seed=self.seed)
-        if self.n_train <= 0 or self.n_test <= 0:
-            raise ConfigError("n_train/n_test 必须 > 0", n_train=self.n_train, n_test=self.n_test)
-        if self.iters <= 0:
-            raise ConfigError("iters 必须 > 0", iters=self.iters)
-        if self.lr <= 0:
-            raise ConfigError("lr 必须 > 0", lr=self.lr)
-        if self.batch <= 0 or self.batch > max(self.n_train, 1):
-            raise ConfigError(
-                "batch 必须在 (0, n_train] 内", batch=self.batch, n_train=self.n_train
-            )
-        if self.hidden <= 0 or self.n_blocks <= 0:
-            raise ConfigError(
-                "hidden/n_blocks 必须 > 0", hidden=self.hidden, n_blocks=self.n_blocks
-            )
-        if self.n_bins < 2:
-            raise ConfigError("n_bins 必须 >= 2", n_bins=self.n_bins)
-        if self.n_components < 1:
-            raise ConfigError("n_components 必须 >= 1", n_components=self.n_components)
-        if self.w2_reg <= 0:
-            raise ConfigError("w2_reg 必须 > 0", w2_reg=self.w2_reg)
+        rules = {
+            "seed": lambda v: v >= 0,
+            "n_train": lambda v: v > 0,
+            "n_val": lambda v: v > 0,
+            "n_test": lambda v: v > 0,
+            "batch_size": lambda v: 1 <= v <= 100_000,
+            "epochs": lambda v: 0 < v <= 100_000,
+            "lr": lambda v: 0 < v < 1.0,
+            "weight_decay": lambda v: 0 <= v < 1.0,
+            "hidden": lambda v: 1 <= v <= 4096,
+            "n_layers": lambda v: 1 <= v <= 8,
+            "n_coupling": lambda v: 1 <= v <= 64,
+            "n_bins": lambda v: 2 <= v <= 64,
+            "bound": lambda v: v > 0,
+            "patience": lambda v: v >= 1,
+            "threads": lambda v: v >= 0,
+        }
+        for name, ok in rules.items():
+            val = getattr(self, name)
+            if not ok(val):
+                raise ConfigError(f"{name}={val!r} violates schema")
 
-
-__all__ = ["ENV_PREFIX", "Config"]
+    @classmethod
+    def from_env(cls, **overrides) -> "Config":
+        cfg = cls()
+        for k, v in overrides.items():
+            if not hasattr(cfg, k):
+                raise ConfigError(f"unknown override {k}")
+            setattr(cfg, k, v)
+        cfg.validate()
+        return cfg

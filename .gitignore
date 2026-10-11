@@ -1,45 +1,52 @@
-# Python
+# Byte-compiled / cache
 __pycache__/
 *.py[cod]
-*.egg-info/
-build/
-dist/
-.eggs/
+*.so
+.Python
 
-# 虚拟环境
+# Environments
 .venv/
 venv/
 env/
+ENV/
 
-# 测试与覆盖率产物
+# Distribution / build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test / coverage
 .pytest_cache/
-.ruff_cache/
 .coverage
 .coverage.*
 htmlcov/
 coverage.xml
-report.json
+.ruff_cache/
 
-# benchmark 产物（每次运行生成，不入库）
-benchmark.json
-bench_before.json
-
-# 数据缓存与模型权重（本项目不下载权重，此项为防御性）
-data/cache/
+# Data / model artifacts (never commit weights or cached data)
 *.npz
 *.npy
+*.pkl
 *.pt
 *.pth
-*.onnx
+data/cache/
+outputs/
+runs/
 
-# 密钥（防御性：本项目不应包含任何密钥）
+# Secrets — never commit keys
 .env
-.env.*
 *.key
 *.pem
-secrets.json
+secrets/
+*token*
+*credential*
 
-# 编辑器
-.vscode/
+# Editors / OS
 .idea/
+.vscode/
 .DS_Store
+Thumbs.db
+
+# Scratch
+scratch_*.py

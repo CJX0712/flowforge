@@ -1,0 +1,450 @@
+{
+  "meta": {
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "datasets": [
+      "warp6",
+      "warp8",
+      "banana6",
+      "banana8",
+      "torus3"
+    ],
+    "cfg": {
+      "epochs": 160,
+      "batch_size": 256,
+      "lr": 0.008,
+      "hidden": 64,
+      "n_train": 1200,
+      "n_val": 500,
+      "n_test": 1000,
+      "seed": 12345
+    },
+    "fuse_modes": {
+      "warp6": [
+        "mixture",
+        "mixture",
+        "mixture"
+      ],
+      "warp8": [
+        "mixture",
+        "mixture",
+        "mixture"
+      ],
+      "banana6": [
+        "mixture",
+        "mixture",
+        "mixture"
+      ],
+      "banana8": [
+        "mixture",
+        "mixture",
+        "mixture"
+      ],
+      "torus3": [
+        "single",
+        "single",
+        "mixture"
+      ]
+    },
+    "elapsed_sec": 73.749,
+    "python": "3.13.14",
+    "numpy": "2.5.3",
+    "platform": "Windows-11-10.0.29671-SP0",
+    "author": "\u6668\u661f"
+  },
+  "rows": [
+    {
+      "dataset": "warp6",
+      "model": "RealNVP-b6",
+      "kind": "flow",
+      "nll_mean": 7.8232831066651265,
+      "nll_std": 0.01870602437231912,
+      "n_params": 2130
+    },
+    {
+      "dataset": "warp6",
+      "model": "MAF-x2",
+      "kind": "flow",
+      "nll_mean": 7.885990353666217,
+      "nll_std": 0.030134307228603913,
+      "n_params": 1292
+    },
+    {
+      "dataset": "warp6",
+      "model": "FlowFuse",
+      "kind": "flagship",
+      "nll_mean": 7.769573590869904,
+      "nll_std": 0.019493245818760864,
+      "n_params": 3424
+    },
+    {
+      "dataset": "warp6",
+      "model": "Gauss-iso",
+      "kind": "baseline",
+      "nll_mean": 8.549039130026845,
+      "nll_std": 0.0,
+      "n_params": 4
+    },
+    {
+      "dataset": "warp6",
+      "model": "Gauss-full",
+      "kind": "baseline",
+      "nll_mean": 7.992358084808838,
+      "nll_std": 0.0,
+      "n_params": 9
+    },
+    {
+      "dataset": "warp6",
+      "model": "GMM",
+      "kind": "baseline",
+      "nll_mean": 8.004865343990197,
+      "nll_std": 0.0,
+      "n_params": 159
+    },
+    {
+      "dataset": "warp8",
+      "model": "RealNVP-b6",
+      "kind": "flow",
+      "nll_mean": 10.239432225894346,
+      "nll_std": 0.01919287347076296,
+      "n_params": 2130
+    },
+    {
+      "dataset": "warp8",
+      "model": "MAF-x2",
+      "kind": "flow",
+      "nll_mean": 10.194345675830887,
+      "nll_std": 0.02720262146406862,
+      "n_params": 1292
+    },
+    {
+      "dataset": "warp8",
+      "model": "FlowFuse",
+      "kind": "flagship",
+      "nll_mean": 10.156946329795906,
+      "nll_std": 0.012120578399760863,
+      "n_params": 3424
+    },
+    {
+      "dataset": "warp8",
+      "model": "Gauss-iso",
+      "kind": "baseline",
+      "nll_mean": 11.371707179963424,
+      "nll_std": 0.0,
+      "n_params": 4
+    },
+    {
+      "dataset": "warp8",
+      "model": "Gauss-full",
+      "kind": "baseline",
+      "nll_mean": 10.235965829882947,
+      "nll_std": 0.0,
+      "n_params": 9
+    },
+    {
+      "dataset": "warp8",
+      "model": "GMM",
+      "kind": "baseline",
+      "nll_mean": 10.60845415116439,
+      "nll_std": 0.0,
+      "n_params": 159
+    },
+    {
+      "dataset": "banana6",
+      "model": "RealNVP-b6",
+      "kind": "flow",
+      "nll_mean": 7.7146240959721935,
+      "nll_std": 0.07452540901858633,
+      "n_params": 2130
+    },
+    {
+      "dataset": "banana6",
+      "model": "MAF-x2",
+      "kind": "flow",
+      "nll_mean": 7.584496506927738,
+      "nll_std": 0.09773495914808021,
+      "n_params": 1292
+    },
+    {
+      "dataset": "banana6",
+      "model": "FlowFuse",
+      "kind": "flagship",
+      "nll_mean": 7.458174033616594,
+      "nll_std": 0.06325683103515711,
+      "n_params": 3424
+    },
+    {
+      "dataset": "banana6",
+      "model": "Gauss-iso",
+      "kind": "baseline",
+      "nll_mean": 8.6316683541898,
+      "nll_std": 0.0,
+      "n_params": 4
+    },
+    {
+      "dataset": "banana6",
+      "model": "Gauss-full",
+      "kind": "baseline",
+      "nll_mean": 8.637224471020645,
+      "nll_std": 0.0,
+      "n_params": 9
+    },
+    {
+      "dataset": "banana6",
+      "model": "GMM",
+      "kind": "baseline",
+      "nll_mean": 7.9496998348416765,
+      "nll_std": 0.0,
+      "n_params": 159
+    },
+    {
+      "dataset": "banana8",
+      "model": "RealNVP-b6",
+      "kind": "flow",
+      "nll_mean": 10.282936142201079,
+      "nll_std": 0.08576131620069764,
+      "n_params": 2130
+    },
+    {
+      "dataset": "banana8",
+      "model": "MAF-x2",
+      "kind": "flow",
+      "nll_mean": 10.257960412549917,
+      "nll_std": 0.030310382812686266,
+      "n_params": 1292
+    },
+    {
+      "dataset": "banana8",
+      "model": "FlowFuse",
+      "kind": "flagship",
+      "nll_mean": 10.106156275602563,
+      "nll_std": 0.032729831428906536,
+      "n_params": 3424
+    },
+    {
+      "dataset": "banana8",
+      "model": "Gauss-iso",
+      "kind": "baseline",
+      "nll_mean": 11.40280299414045,
+      "nll_std": 1.7763568394002505e-15,
+      "n_params": 4
+    },
+    {
+      "dataset": "banana8",
+      "model": "Gauss-full",
+      "kind": "baseline",
+      "nll_mean": 11.424316971303433,
+      "nll_std": 0.0,
+      "n_params": 9
+    },
+    {
+      "dataset": "banana8",
+      "model": "GMM",
+      "kind": "baseline",
+      "nll_mean": 10.788008959073066,
+      "nll_std": 0.0,
+      "n_params": 159
+    },
+    {
+      "dataset": "torus3",
+      "model": "RealNVP-b6",
+      "kind": "flow",
+      "nll_mean": 3.6958506913368416,
+      "nll_std": 0.11695424765629583,
+      "n_params": 2130
+    },
+    {
+      "dataset": "torus3",
+      "model": "MAF-x2",
+      "kind": "flow",
+      "nll_mean": 4.0468905960610675,
+      "nll_std": 0.17812633856776497,
+      "n_params": 1292
+    },
+    {
+      "dataset": "torus3",
+      "model": "FlowFuse",
+      "kind": "flagship",
+      "nll_mean": 3.6812394552571717,
+      "nll_std": 0.1063822752132448,
+      "n_params": 3424
+    },
+    {
+      "dataset": "torus3",
+      "model": "Gauss-iso",
+      "kind": "baseline",
+      "nll_mean": 4.254298341671541,
+      "nll_std": 0.0,
+      "n_params": 4
+    },
+    {
+      "dataset": "torus3",
+      "model": "Gauss-full",
+      "kind": "baseline",
+      "nll_mean": 4.254523572132662,
+      "nll_std": 0.0,
+      "n_params": 9
+    },
+    {
+      "dataset": "torus3",
+      "model": "GMM",
+      "kind": "baseline",
+      "nll_mean": 3.3498903274702525,
+      "nll_std": 0.0,
+      "n_params": 159
+    }
+  ],
+  "gate": {
+    "per_dataset": {
+      "warp6": {
+        "strongest_baseline": "Gauss-full",
+        "baseline_nll": 7.992358084808838,
+        "baseline_std": 0.0,
+        "flagship_nll": 7.769573590869904,
+        "flagship_std": 0.019493245818760864,
+        "gap": 0.22278449393893318,
+        "significant": true,
+        "relative_gain_pct": 2.787468874328618
+      },
+      "warp8": {
+        "strongest_baseline": "Gauss-full",
+        "baseline_nll": 10.235965829882947,
+        "baseline_std": 0.0,
+        "flagship_nll": 10.156946329795906,
+        "flagship_std": 0.012120578399760863,
+        "gap": 0.07901950008704084,
+        "significant": true,
+        "relative_gain_pct": 0.7719789358455144
+      },
+      "banana6": {
+        "strongest_baseline": "GMM",
+        "baseline_nll": 7.9496998348416765,
+        "baseline_std": 0.0,
+        "flagship_nll": 7.458174033616594,
+        "flagship_std": 0.06325683103515711,
+        "gap": 0.49152580122508294,
+        "significant": true,
+        "relative_gain_pct": 6.182947928056859
+      },
+      "banana8": {
+        "strongest_baseline": "GMM",
+        "baseline_nll": 10.788008959073066,
+        "baseline_std": 0.0,
+        "flagship_nll": 10.106156275602563,
+        "flagship_std": 0.032729831428906536,
+        "gap": 0.6818526834705025,
+        "significant": true,
+        "relative_gain_pct": 6.320468272294511
+      },
+      "torus3": {
+        "strongest_baseline": "GMM",
+        "baseline_nll": 3.3498903274702525,
+        "baseline_std": 0.0,
+        "flagship_nll": 3.6812394552571717,
+        "flagship_std": 0.1063822752132448,
+        "gap": -0.33134912778691916,
+        "significant": false,
+        "relative_gain_pct": -9.891342563359235
+      }
+    },
+    "wins": 4,
+    "total": 5
+  },
+  "ablation": [
+    {
+      "dataset": "warp6",
+      "fusion_on_flowfuse": 7.769573590869904,
+      "fusion_off_best_member": 7.8232831066651265,
+      "best_member": "RealNVP-b6",
+      "delta": 0.053709515795222096,
+      "members": {
+        "RealNVP-b6": 7.8232831066651265,
+        "MAF-x2": 7.885990353666217
+      }
+    },
+    {
+      "dataset": "warp8",
+      "fusion_on_flowfuse": 10.156946329795906,
+      "fusion_off_best_member": 10.194345675830887,
+      "best_member": "MAF-x2",
+      "delta": 0.03739934603498085,
+      "members": {
+        "RealNVP-b6": 10.239432225894346,
+        "MAF-x2": 10.194345675830887
+      }
+    },
+    {
+      "dataset": "banana6",
+      "fusion_on_flowfuse": 7.458174033616594,
+      "fusion_off_best_member": 7.584496506927738,
+      "best_member": "MAF-x2",
+      "delta": 0.1263224733111441,
+      "members": {
+        "RealNVP-b6": 7.7146240959721935,
+        "MAF-x2": 7.584496506927738
+      }
+    },
+    {
+      "dataset": "banana8",
+      "fusion_on_flowfuse": 10.106156275602563,
+      "fusion_off_best_member": 10.257960412549917,
+      "best_member": "MAF-x2",
+      "delta": 0.15180413694735329,
+      "members": {
+        "RealNVP-b6": 10.282936142201079,
+        "MAF-x2": 10.257960412549917
+      }
+    },
+    {
+      "dataset": "torus3",
+      "fusion_on_flowfuse": 3.6812394552571717,
+      "fusion_off_best_member": 3.6958506913368416,
+      "best_member": "RealNVP-b6",
+      "delta": 0.014611236079669965,
+      "members": {
+        "RealNVP-b6": 3.6958506913368416,
+        "MAF-x2": 4.0468905960610675
+      }
+    }
+  ],
+  "determinism": {
+    "identical": true,
+    "worst_abs_diff": 0.0,
+    "compared": 6
+  },
+  "failure_cases": [
+    {
+      "case": "torus3: flagship does not beat GMM",
+      "evidence": "FlowFuse 3.6812\u00b10.1064 vs GMM 3.3499 (gap -0.3313, -9.89%)",
+      "attribution": "Thin-manifold + few training steps: a torus is a 2-D surface in 3-D, which a 16-component GMM tiles cheaply, while a smooth diffeomorphism must bend all of space to represent it. A flow *contains* the Gaussian as a special case, so this is an optimisation-budget failure, not a capacity failure."
+    },
+    {
+      "case": "warp8: member RealNVP-b6 is worse than baseline Gauss-full",
+      "evidence": "RealNVP-b6 10.2394 vs baseline 10.2360",
+      "attribution": "Architecture/DGP mismatch. This is the reason FlowFuse uses a gain gate: a mis-matched member must not be allowed to dictate the shipped density."
+    },
+    {
+      "case": "torus3: member RealNVP-b6 is worse than baseline GMM",
+      "evidence": "RealNVP-b6 3.6959 vs baseline 3.3499",
+      "attribution": "Architecture/DGP mismatch. This is the reason FlowFuse uses a gain gate: a mis-matched member must not be allowed to dictate the shipped density."
+    },
+    {
+      "case": "torus3: member MAF-x2 is worse than baseline GMM",
+      "evidence": "MAF-x2 4.0469 vs baseline 3.3499",
+      "attribution": "Architecture/DGP mismatch. This is the reason FlowFuse uses a gain gate: a mis-matched member must not be allowed to dictate the shipped density."
+    },
+    {
+      "case": "warp8: win is real but narrow (+0.77%)",
+      "evidence": "gap +0.0790 nats over Gauss-full",
+      "attribution": "The warp DGP is close to Gaussian after standardisation, so the head-room over a Gaussian baseline is intrinsically small. Treat sub-2% gains as fragile to seed and budget."
+    },
+    {
+      "case": "2-D toy suite is non-discriminative (GMM wins there)",
+      "evidence": "see README 'Known limitations'; run with --diagnostic-2d to reproduce",
+      "attribution": "In 2-D a 16-component full-covariance GMM is near-Bayes-optimal, and on `gmm8` it is literally the generating process, so it cannot be beaten. The performance gate is therefore defined on the d>=3 suite only."
+    }
+  ]
+}

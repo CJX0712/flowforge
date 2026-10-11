@@ -1,74 +1,55 @@
-"""接口契约（Protocol）：调用单向无环 cli → pipeline → {data,flows,training,eval} → core。
+"""Protocols (structural interfaces) for FlowForge components.
 
-Bijector 契约（硬）：
-  forward(X) -> (Z, logdet)      数据域 → 隐空间，logdet = log|det dZ/dX|
-  inverse(Z) -> X                必须满足 inverse(forward(X)) == X（机器精度）
-  backward(gZ, w) -> (gX, grads) 解析梯度；w 为每样本责任度权重
+Adhering to these lets the pipeline treat every model — numpy hand-written
+flows, sklearn baselines, or optional ``nflows`` SOTA backends — uniformly.
+
+Author: 晨星
 """
 
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 
 
 @runtime_checkable
-class Bijector(Protocol):
-    """可逆变换块。"""
+class Flow(Protocol):
+    """A normalizing flow: a bijective ``x <-> z`` map with tractable Jacobian.
 
-    def forward(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]: ...
-
-    def inverse(self, Z: np.ndarray) -> np.ndarray: ...
-
-    def backward(
-        self, gZ: np.ndarray, w: np.ndarray
-    ) -> tuple[np.ndarray, dict[str, np.ndarray]]: ...
-
-    def nparams(self) -> int: ...
-
-    def params(self) -> list: ...
-
-    def set_params(self, values: dict[str, np.ndarray]) -> None: ...
-
-
-@runtime_checkable
-class Density(Protocol):
-    """可解析求对数密度的目标分布。"""
+    Convention: ``log_prob`` returns *higher = more likely* (log-density in
+    nats).  ``forward`` maps data ``x`` to latent ``z``; ``inverse`` samples.
+    """
 
     @property
-    def name(self) -> str: ...
+    def n_params(self) -> int: ...
 
-    def sample(self, n: int, rng: np.random.Generator) -> np.ndarray: ...
+    def forward(self, x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """x (N,D) -> (z (N,D), log_det (N,)) where log_det = log|det dx/dz|? .
 
-    def log_prob(self, X: np.ndarray) -> np.ndarray: ...
+        Returns ``log_det = log|det ∂z/∂x|`` (the encoder Jacobian log-det).
+        """
+        ...
 
+    def inverse(self, z: np.ndarray) -> np.ndarray:
+        """z (N,D) -> x (N,D)."""
+        ...
 
-@runtime_checkable
-class GenerativeModel(Protocol):
-    """归一化流模型（单流或混合流）。"""
+    def log_prob(self, x: np.ndarray) -> np.ndarray:
+        """Log-density of ``x`` under the model (N,) in nats."""
+        ...
 
-    def log_prob(self, X: np.ndarray) -> np.ndarray: ...
-
-    def sample(self, n: int, rng: np.random.Generator) -> np.ndarray: ...
-
-    def nparams(self) -> int: ...
-
-    def nll_grad(self, X: np.ndarray) -> tuple[np.ndarray, Any]: ...
-
-
-@runtime_checkable
-class Method(Protocol):
-    """可参与 benchmark 的方法。"""
-
-    @property
-    def name(self) -> str: ...
-
-    def fit(self, X: np.ndarray, cfg: Any, seed: int) -> Method: ...
-
-    def score(self, X: np.ndarray) -> np.ndarray:
-        """返回 log p_model(x)。"""
+    def sample(self, n: int, rng: np.random.Generator | None = None) -> np.ndarray:
+        """Draw ``n`` samples from the model."""
         ...
 
 
-__all__ = ["Bijector", "Density", "GenerativeModel", "Method"]
+def available_nflows() -> bool:
+    """True if the optional ``nflows`` + ``torch`` SOTA backend is importable."""
+    try:
+        import nflows  # noqa: F401
+        import torch  # noqa: F401
+
+        return True
+    except Exception:  # pragma: no cover - environment dependent
+        return False

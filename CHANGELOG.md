@@ -1,82 +1,73 @@
 # Changelog
 
-本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。所有条目作者：**晨星**。
+All notable changes to FlowForge. **Author: 晨星** · MIT.
 
-## [0.1.2] - 2026-10-08
+---
 
-### 修复（由 CI 门禁抓出，非预防性改动）
+## [0.1.0] — 2026-10-11
 
-- **CI 矩阵含 Python 3.11 导致 2/6 作业红灯**。根因：锁文件钉的 `numpy==2.5.3`
-  **要求 Python >= 3.12**，3.11 上无 wheel，ubuntu 报
-  `No matching distribution found for numpy==2.5.3`，windows 因安装失败连带
-  `No module named ruff`。
-  处置：CI 矩阵收敛为 **3.12 / 3.13**（× ubuntu/windows = 4 作业），
-  `pyproject.toml` 的 `requires-python` 改为 `>=3.12`、ruff `target-version` 改为 `py312`，
-  `requirements.txt` 的 numpy 下限提到 `>=2.5`，README 徽章同步。
-  **这纠正了 v0.1.0/v0.1.1 中「CI 矩阵 py3.11-3.13」的错误声明。**
+First release. Exact-likelihood normalizing-flow density estimation with the
+`FlowFuse` mixture flagship.
 
-## [0.1.1] - 2026-10-08
+### Added
 
-### 修复
+**Flows (Tier-1, pure NumPy)**
+- `AffineCoupling` — RealNVP coupling with exact algebraic inverse and
+  exact `log|det| = Σ s`; single fused conditioner emitting `[s | t]`.
+- `RandomPermutation` — `log|det| = 0` re-shuffle between blocks.
+- `MaskedMLP` / `MaskedAutoregressiveFlow` / `MAFStack` — MAF with a provably
+  correct "reach"-based autoregressive mask (valid at `D = 2`), stacked with
+  permutations so later blocks can re-shape the unconditional first marginal.
+- `RealNVP`, `CompositeFlow` — composition with additive log-determinants.
+- Baselines: `IsotropicGaussian`, `FullCovGaussian`, `MixtureOfGaussians`
+  (scikit-learn).
 
-- **I4 网格积分未分块导致内存尖峰**（干净环境首次运行 demo 时崩）。
-  `density_normalization_error` 用 900×900 网格一次性把 810,000 个点送进 MLP，
-  单次分配约 198MiB（float64 的 `(810000, hidden)` 中间量），内存紧张时抛
-  `numpy._core._exceptions._ArrayMemoryError`。
-  本机内存充裕时从不暴露，**只有干净环境复现验证才把它逼出来**。
-  改为按行分块（默认 20,000 点/次），实测 Python 峰值分配 **57.3MB**。
-  新增回归测试 `test_i4_normalization_is_chunked_and_memory_bounded`，
-  用「单次调用点数 ≤ chunk」把它锁死。
+**Training**
+- Analytic-gradient maximum likelihood, Adam, cosine LR annealing, gradient
+  clipping, early stopping on validation with best-checkpoint restore.
 
-### 验证
+**Flagship**
+- `FlowFuse`: log-linear mixture of flows, weights fitted by **EM on the
+  validation split** (monotone by the EM theorem), plus a non-inferiority gain
+  gate that falls back to the best single member when the mixture is worse.
 
-修复后重跑 demo：**60 行核心指标逐位不变**（mismatches = 0），
-G1a / G1b / G2 / G4 / G5 / G6 全绿。
+**Data**
+- 10 synthetic DGPs; discriminative `d ≥ 3` suite (warp6/8, banana6/8, torus3)
+  and a diagnostic 2-D suite. Structural randomness is separated from sampling
+  randomness so every split shares one distribution.
+- Leak-safe standardiser fitted on `X_train` only.
 
-## [0.1.0] - 2026-10-08
+**Verification**
+- 50 tests, 91% coverage; invariant suite (invertibility 4.4e-16, log-det
+  exactness 0.0, gradient check 1.8e-10 / 7.8e-10, MAF autoregression,
+  EM monotonicity, bit-identical determinism).
+- CLI (`benchmark` / `fit` / `selftest`), demo writing `benchmark.json`,
+  CI matrix 3.12/3.13, Dockerfile, Makefile, pinned lock.
 
-首个公开版本。
+### Result
 
-### 新增
+Gate **4/5** discriminative datasets won vs. the strongest baseline;
+fusion improves all 5; demo 73.4 s on CPU; determinism bit-identical.
 
-- **五类可解析合成密度**（`data/densities.py`）：`gmm5` / `ring8` / `banana` / `funnel` / `swirl`，
-  每个都提供**解析 `log p_true(x)`**，构成整套基准的绝对金标准（KL 下界 0）。
-- **三类双射器**（`flows/bijectors.py`），全部带解析梯度：
-  - `AffineCoupling` —— RealNVP（Dinh et al., ICML 2017）
-  - `MaskedAffineAutoregressive` —— MAF（Papamakarios et al., NeurIPS 2017），
-    支持块间**交替自回归顺序**
-  - `LinearSplineCoupling` —— 分段线性样条（NSF, Durkan et al., NeurIPS 2019 特例），
-    带 `min_bin_width` 下界约束
-- **旗舰 FlowFuse**：自适应混合归一化流，块类型与分量数 `K` 在独立验证集上选择，
-  含死组件复活机制；总参数预算与基线**严格相等**。
-- **五类硬不变量**（`eval/invariants.py`）作为 CI 门禁：
-  往返可逆性 / logdet vs 数值雅可比 / 解析梯度 vs 中心差分 / 密度归一化 / KL 非负。
-- **评测指标**：KL、去偏 Sinkhorn 散度 W2、RBF 核 MMD。
-- 训练器：Adam + 指数 lr 衰减 + 全局梯度裁剪。
-- CLI（`--check` / `--quick` / 自定义数据集与方法）、端到端 demo（门禁 + 消融 + 失败案例）。
-- CI 矩阵：ubuntu/windows × Python 3.11 / 3.12 / 3.13，lint 与 format 为**硬门禁**。
+### Known limitations
 
-### 实测结果
+- `torus3` is a genuine loss (−9.89% vs GMM).
+- `warp8` win (+0.77%) is narrow and fragile.
+- 2-D toy datasets are non-discriminative — GMM wins all of them.
 
-- 聚合 `KL(p_true‖p_model)` = **0.08903 ± 0.11809**（5 数据集 × 3 种子），
-  相对最强单流基线 `affine`（0.18623）降低 **52.20%**。
-- 逐数据集**非劣 5/5**；多模态数据集 `gmm5` / `ring8` 配对显著胜出。
-- demo 端到端 **52.4s**（预算 60s）。
-- 58 项单元测试全绿；`ruff check` + `ruff format --check` 零告警。
+---
 
-### 修复的真实缺陷（开发期，全部由不变量/门禁抓出）
+### Changelog of defects found and fixed during development
 
-| 缺陷 | 症状 | 根因 | 修法 |
-|---|---|---|---|
-| 真值密度方差不一致 | `banana` KL 估值为 **−0.0537**，违反 Gibbs 不等式 | `sample()` 用 `var1=1.6` 采样，`log_prob()` 按单位方差计算 | 补齐 `-0.5·log(var1)` 项，并新增「∫p dx = 1」数值积分不变量 |
-| 样条反向广播错误 | reshape 尺寸 324 ≠ 36 | `(n,nm)` 与 `(n,nm,K)` 广播时尾部对齐被撑成 `(n,n,nm,K)` | 显式补维 `d_sl[:, :, None]` |
-| MAF 缺交替顺序 | 聚合 KL 0.303（应为 0.058） | 自回归顺序固定 ⇒ 首维永远无法以其它维为条件 | 块间交替 `reverse`，新增回归测试 |
-| 样条 bin 宽度塌缩 | 8 blocks 时 NLL 发散 3.31 → 4.84 | softmax 宽度可趋于 0 ⇒ slope → ∞ ⇒ logdet 爆炸 | 强制 `min_bin_width` 下界（NSF 标准做法） |
-| 聚合显著性判据失效 | 明明大胜却判 FAIL | 跨数据集 std 被量级差 100 倍撑到 0.18 | 改为逐数据集配对检验 |
-| I5 假阴性 | 好模型 KL 报 −0.036 | KL 蒙特卡洛估计只用 24 样本，SE ≈ 0.1 | I5 改用大样本 + 按样本量给统计容差 |
+Recorded because each one is a genuine trap, not a typo:
 
-### 已知限制
-
-见 [`docs/known_limitations.md`](docs/known_limitations.md)：
-分段线性样条耦合未纳入主基准（优化不稳定）、`swirl` 目标恒等于标准高斯、
-W2 指标在当前样本量下饱和、结论限于 2D。
+| Defect | Root cause | Fix |
+|---|---|---|
+| Gradient check failed at 3.5e-2 | tanh derivative used the **pre**-activation `z` instead of the post-activation `a` | `1 − a²` |
+| MADE mask shape mismatch | mask built as `(n_dst, n_src)` while `W` is `(n_src, n_dst)` | transpose the mask |
+| Coupling backprop wrong | only the **s**-net's input gradient was propagated; the **t**-net's was discarded | add both paths |
+| Conditioner shape error | full zero-padded vector passed to a net expecting only conditioning coords | explicit `cond_idx` selection |
+| Huge train→test NLL gap | DGP drew its **structural** parameters from the sampling RNG → train/val/test came from three different distributions | fixed structural seed |
+| banana DGP reached 1e56 | recursive `x_j = x_{j−1} + 0.8(x_{j−1}²−1)` compounds quadratically | depend on the latent, not the previous coordinate |
+| RealNVP exploded to NLL 219 ± 333 | unbounded `exp(s)` let the Jacobian run away | clip `\|s\| ≤ 10` with straight-through gradient |
+| Config env override crashed | `from __future__ import annotations` makes `Field.type` a *string* | resolve via `typing.get_type_hints` |

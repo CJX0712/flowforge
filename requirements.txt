@@ -1,10 +1,10 @@
-# FlowForge 运行依赖（作者：晨星）
-# 全部为跨平台 CPU 轮子，无需编译、无需 GPU、无需下载预训练权重。
-numpy>=2.5,<3
-scipy>=1.13
-scikit-learn>=1.5
+# FlowForge runtime dependencies (author: 晨星)
+# Tier-1 (always required): pure-NumPy flows need only these.
+numpy>=1.26
+scipy>=1.11
+scikit-learn>=1.5.0
 
-# 开发/测试依赖
-pytest>=8.0
-pytest-cov>=5.0
-ruff==0.16.10
+# Optional Tier-0 SOTA backend -- NOT required. The system degrades
+# gracefully to Tier-1 when absent; install with:  pip install -e ".[sota]"
+# torch>=2.0
+# nflows>=0.14

@@ -1,5 +1,10 @@
-"""数据层：可解析求对数密度的合成分布。"""
+"""Data package: leak-free synthetic density benchmarks.
 
-from .densities import DATASETS, Banana, Funnel, GaussianMixture, Swirl, build_density
+Author: 晨星
+"""
 
-__all__ = ["DATASETS", "Banana", "Funnel", "GaussianMixture", "Swirl", "build_density"]
+from __future__ import annotations
+
+from .synthetic import REGISTRY, make_dataset, list_datasets
+
+__all__ = ["make_dataset", "list_datasets", "REGISTRY"]

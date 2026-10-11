@@ -1,19 +1,30 @@
-"""核心层：错误码 / 数据类型 / 配置 / 接口 / 确定性种子。"""
+"""FlowForge core package: seed, config, errors, types, interfaces.
+
+Author: 晨星
+"""
+
+from __future__ import annotations
 
 from .config import Config
-from .errors import FlowForgeError
-from .seed import current, rng, set_all
-from .types import Dataset, DensitySpec, FitResult, FlowSpec, MethodSummary
+from .errors import (
+    ConfigError,
+    DataError,
+    ForgeError,
+    NumericalError,
+    PipelineError,
+    TrainingError,
+)
+from .seed import get_seed, set_all, spawn
 
 __all__ = [
     "Config",
-    "Dataset",
-    "DensitySpec",
-    "FitResult",
-    "FlowForgeError",
-    "FlowSpec",
-    "MethodSummary",
-    "current",
-    "rng",
+    "ConfigError",
+    "DataError",
+    "ForgeError",
+    "NumericalError",
+    "PipelineError",
+    "TrainingError",
+    "get_seed",
     "set_all",
+    "spawn",
 ]

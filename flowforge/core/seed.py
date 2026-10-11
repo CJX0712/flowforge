@@ -1,42 +1,47 @@
-"""全局确定性：唯一 seed 入口。
+"""Global deterministic seeding for FlowForge.
 
-踩坑库 §A：多 seed 门槛在 CI 上翻转的常见根因是 seed 未一次设齐；
-这里把 numpy legacy 全局 + stdlib random + PYTHONHASHSEED 一次设齐。
+A single entry point ``set_all(seed)`` pins every RNG we use (numpy, python
+``random``) so that two runs with the same seed produce bit-identical models
+and metrics.  This is a hard contract of the project: the demo asserts it.
+
+Author: 晨星
 """
 
 from __future__ import annotations
 
-import os
 import random
+from dataclasses import dataclass
 
 import numpy as np
 
-_SEED: int | None = None
+_GLOBAL_SEED: int = 12345
 
 
-def set_all(seed: int) -> int:
-    """设置全局确定性种子，返回 seed 本身。"""
-    global _SEED  # noqa: PLW0603  # 模块级单例状态，刻意如此
-    if not isinstance(seed, int) or isinstance(seed, bool):
-        raise TypeError(f"seed 必须是 int，收到 {type(seed).__name__}")
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed % (2**32))
-    _SEED = int(seed)
-    return _SEED
+@dataclass(frozen=True)
+class Rng:
+    """A frozen view of the active global seed."""
+
+    seed: int
 
 
-def current() -> int | None:
-    return _SEED
+def get_seed() -> int:
+    return _GLOBAL_SEED
 
 
-def rng(seed: int | None = None) -> np.random.Generator:
-    """取得独立 Generator。显式 seed 优先，否则用全局 seed。"""
-    if seed is None:
-        if _SEED is None:
-            raise RuntimeError("未设置全局 seed，请先调用 core.seed.set_all(seed)")
-        seed = _SEED
-    return np.random.default_rng(int(seed))
+def set_all(seed: int = 12345) -> int:
+    """Pin numpy + python ``random`` to ``seed`` and return it.
+
+    Determinism contract: calling ``set_all(seed)`` then building/training a
+    model must yield byte-identical parameters and metrics on every machine.
+    """
+    global _GLOBAL_SEED
+    _GLOBAL_SEED = int(seed)
+    np.random.seed(_GLOBAL_SEED)
+    random.seed(_GLOBAL_SEED)
+    return _GLOBAL_SEED
 
 
-__all__ = ["current", "rng", "set_all"]
+def spawn(seed: int | None = None) -> np.random.Generator:
+    """Return a fresh ``numpy`` Generator derived from ``seed`` (or global)."""
+    base = int(seed) if seed is not None else _GLOBAL_SEED
+    return np.random.default_rng(base)

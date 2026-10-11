@@ -1,100 +1,60 @@
-"""FlowForge 错误码（E1xx 配置 / E2xx 数据 / E3xx 流 / E4xx 训练 / E5xx 评测）。
+"""FlowForge error taxonomy (E100-E500).
 
-约定：所有可预期的失败都必须抛 FlowForgeError 子类并带稳定错误码，
-禁止用裸 Exception 或静默兜底（踩坑库 §A：守卫没被测试覆盖 = 带 bug 提交）。
+Every exception carries a stable code so downstream tooling and CI can branch
+on failure mode rather than parsing message text.
+
+Author: 晨星
 """
 
 from __future__ import annotations
 
 
-class FlowForgeError(Exception):
-    """所有 FlowForge 异常的基类。"""
+class ForgeError(Exception):
+    """Base class for all FlowForge errors (E100+)."""
 
-    code = "E000"
-
-    def __init__(self, message: str, **ctx: object) -> None:
-        self.ctx = ctx
-        detail = f"[{self.code}] {message}"
-        if ctx:
-            detail += " | " + ", ".join(f"{k}={v}" for k, v in ctx.items())
-        super().__init__(detail)
-
-
-# ---- E1xx 配置 ------------------------------------------------------------
-class ConfigError(FlowForgeError):
     code = "E100"
+    _registry: dict[str, type["ForgeError"]] = {}
+
+    def __init__(self, message: str = "", *, code: str | None = None):
+        self.message = message
+        super().__init__(message)
+        if code is not None:
+            self.code = code
+
+    def __init_subclass__(cls, **kwargs):  # noqa: D102
+        super().__init_subclass__(**kwargs)
+        if cls.code != "E100":
+            ForgeError._registry[cls.code] = cls
+
+    def __str__(self) -> str:  # noqa: D105
+        return f"[{self.code}] {self.message}"
 
 
-class UnknownMethodError(ConfigError):
-    code = "E101"
+class ConfigError(ForgeError):
+    """E110: configuration / schema validation failure."""
+
+    code = "E110"
 
 
-class UnknownDatasetError(ConfigError):
-    code = "E102"
+class DataError(ForgeError):
+    """E200: data loading / generation / leakage guard failure."""
 
-
-# ---- E2xx 数据 ------------------------------------------------------------
-class DataError(FlowForgeError):
     code = "E200"
 
 
-class ShapeMismatchError(DataError):
-    code = "E201"
+class NumericalError(ForgeError):
+    """E300: numerical instability (NaN / Inf / non-finite Jacobian)."""
 
-
-class DensityNotNormalizedError(DataError):
-    code = "E202"
-
-
-# ---- E3xx 流 / 双射 -------------------------------------------------------
-class FlowError(FlowForgeError):
     code = "E300"
 
 
-class NotInvertibleError(FlowError):
-    code = "E301"
+class TrainingError(ForgeError):
+    """E400: training loop failure (divergence / non-monotone loss)."""
 
-
-class LogDetMismatchError(FlowError):
-    code = "E302"
-
-
-class GradientCheckError(FlowError):
-    code = "E303"
-
-
-# ---- E4xx 训练 ------------------------------------------------------------
-class TrainingError(FlowError):
     code = "E400"
 
 
-class DivergenceError(TrainingError):
-    code = "E401"
+class PipelineError(ForgeError):
+    """E500: pipeline orchestration / I/O failure."""
 
-
-# ---- E5xx 评测 ------------------------------------------------------------
-class EvalError(FlowForgeError):
     code = "E500"
-
-
-class NegativeKLError(EvalError):
-    code = "E501"
-
-
-__all__ = [
-    "ConfigError",
-    "DataError",
-    "DensityNotNormalizedError",
-    "DivergenceError",
-    "EvalError",
-    "FlowError",
-    "FlowForgeError",
-    "GradientCheckError",
-    "LogDetMismatchError",
-    "NegativeKLError",
-    "NotInvertibleError",
-    "ShapeMismatchError",
-    "TrainingError",
-    "UnknownDatasetError",
-    "UnknownMethodError",
-]
