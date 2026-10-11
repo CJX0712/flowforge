@@ -199,6 +199,31 @@ dataset twice on every invocation and asserts the metrics match bit-for-bit.
 
 ---
 
+## Visual console (zero-dependency)
+
+`console.html` is a single, self-contained dashboard generated **entirely from the
+public FlowFuse native API** — no re-implemented math, no CDN, no external assets.
+Regenerate it with:
+
+```bash
+python make_console.py     # trains RealNVP + MAFStack, fuses them with FlowFuse,
+                           # then bakes density heat-maps, samples, per-epoch NLL
+                           # curves, the EM validation-likelihood curve and the
+                           # falsifiable invariant gates into console.html
+```
+
+For each 2-D dataset (`moons` / `rings` / `gmm8`) it shows:
+
+- the **density log p(x)** heat-map with model samples (orange) and training data (cyan);
+- the **EM validation log-likelihood** curve (monotone ↑ by construction);
+- the **RealNVP / MAF per-epoch NLL** curves (early-stopped);
+- the **gain-gate verdict** (mixture vs single-member fallback) and quality
+  conservation `∫ p(x) dx ≈ 1` (change-of-variables).
+
+Author: 晨星 · MIT.
+
+---
+
 ## Licence & credits
 
 MIT — © 2026 **晨星**.
